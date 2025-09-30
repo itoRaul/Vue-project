@@ -1,27 +1,19 @@
 <template>
-  <div class="bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
 
-    <div v-if="form && !quizCompleted" class="questions bg-white w-full max-w-2xl p-6 sm:p-8 rounded-3xl shadow-2xl border-4 border-yellow-300 transition-all duration-300">
+    <div v-if="form && !quizCompleted" class="questions bg-white w-full max-w-2xl p-8 rounded-lg shadow-lg border border-gray-200 transition-all duration-300">
 
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl sm:text-4xl font-black text-purple-600 text-center w-full">
-          🎮 Quiz! 🎉
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-2xl sm:text-3xl font-semibold text-gray-800 text-center w-full">
+          Quiz
         </h1>
       </div>
-      
-      <!--
-      <HeaderComponent :title="currentQuestion.question" @returnTitle="currentQuestion.question = $event">
-        <template #title>
-          🎮 {{ currentQuestion.question }} 🎉 
-        </template>
-      </HeaderComponent>
-      -->
 
-      <p class="text-xl text-gray-800 mb-8 font-bold text-center min-h-[56px] bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-300">
+      <p class="text-lg text-gray-700 mb-8 text-center min-h-[56px] bg-gray-50 p-6 rounded-md border border-gray-100">
         {{ currentQuestion.question }}
       </p>
 
-      <div class="space-y-4">
+      <div class="space-y-3">
         <div v-for="option in currentQuestion.options" :key="option.id">
           <input 
             class="sr-only peer" 
@@ -34,24 +26,18 @@
           />
           <label 
             :for="option.id"
-            :style="{ 
-              '--option-color': option.color,
-              'backgroundColor': option.color,
-              'borderColor': option.color 
-            }"
-            class="block w-full p-6 text-white font-bold text-lg rounded-2xl transition-all duration-300 ease-in-out cursor-pointer
-                   border-4 shadow-lg transform hover:scale-105 hover:shadow-xl
-                   peer-disabled:cursor-not-allowed peer-disabled:opacity-70
-                   peer-checked:scale-110 peer-checked:shadow-2xl peer-checked:ring-4 peer-checked:ring-yellow-400
-                   peer-checked:animate-pulse"
+            class="block w-full p-4 text-gray-700 font-medium text-base rounded-md transition-all duration-200 ease-in-out cursor-pointer
+                   border border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50
+                   peer-disabled:cursor-not-allowed peer-disabled:opacity-50
+                   peer-checked:bg-blue-50 peer-checked:border-blue-300 peer-checked:text-blue-800"
           >
-            <span class="drop-shadow-lg">{{ option.text }}</span>
+            {{ option.text }}
           </label>
         </div>
       </div>
 
       <div class="mt-8 min-h-[3rem] flex items-center justify-center">
-        <p v-if="feedbackMessage" :class="feedbackClass" class="text-2xl font-black transition-opacity duration-300 bg-white px-6 py-3 rounded-full shadow-lg border-4 border-yellow-400">
+        <p v-if="feedbackMessage" :class="feedbackClass" class="text-lg font-medium transition-opacity duration-300 bg-gray-50 px-4 py-2 rounded-md border border-gray-200">
           {{ feedbackMessage }}
         </p>
       </div>
@@ -59,25 +45,23 @@
       <button 
         @click="checkAnswer" 
         :disabled="!selectedAnswer || feedbackMessage !== ''"
-        class="w-full mt-6 py-4 px-6 text-white font-black text-xl rounded-2xl shadow-xl transition-all duration-300
-               bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 
-               disabled:bg-gradient-to-r disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed 
-               transform hover:scale-105 active:scale-95 border-4 border-green-300
-               focus:outline-none focus:ring-4 focus:ring-yellow-400"
+        class="w-full mt-6 py-3 px-6 text-white font-medium text-base rounded-md transition-all duration-200
+               bg-blue-600 hover:bg-blue-700 
+               disabled:bg-gray-400 disabled:cursor-not-allowed 
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
-        🚀 Enviar Resposta! 🚀
+        Enviar Resposta
       </button>
     </div>    
     
-    <div v-if="quizCompleted" class="text-center bg-white p-10 rounded-3xl shadow-2xl border-4 border-rainbow bg-gradient-to-br from-yellow-100 to-pink-100">
-      <h2 class="text-4xl font-black text-purple-600 mb-6">🎉 Quiz Finalizado! 🎉</h2>
-      <p class="text-xl text-gray-800 mb-8 font-bold">🌟 Parabéns! Você completou o desafio! 🌟</p>
+    <div v-if="quizCompleted" class="text-center bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Quiz Finalizado</h2>
+      <p class="text-lg text-gray-600 mb-6">Parabéns! Você completou o quiz.</p>
       <button @click="restartQuiz" 
-              class="py-4 px-8 bg-gradient-to-r from-blue-400 to-purple-500 text-white font-black text-lg rounded-2xl 
-                     shadow-xl hover:from-blue-500 hover:to-purple-600 transition-all duration-300 
-                     transform hover:scale-105 active:scale-95 border-4 border-blue-300
-                     focus:outline-none focus:ring-4 focus:ring-yellow-400">
-        🔄 Jogar Novamente! 🎮
+              class="py-3 px-6 bg-blue-600 text-white font-medium text-base rounded-md 
+                     hover:bg-blue-700 transition-all duration-200 
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        Jogar Novamente
       </button>
     </div>
 
@@ -227,11 +211,11 @@ export default {
         return;
       }
       if (this.selectedAnswer === this.currentQuestion.correctAnswer) {
-        this.feedbackMessage = 'Resposta correta! 🎉';
-        this.feedbackClass = 'text-green-500';
+        this.feedbackMessage = 'Resposta correta!';
+        this.feedbackClass = 'text-green-600';
       } else {
-        this.feedbackMessage = `Resposta incorreta!`;
-        this.feedbackClass = 'text-red-500';
+        this.feedbackMessage = 'Resposta incorreta.';
+        this.feedbackClass = 'text-red-600';
       }
       setTimeout(this.nextQuestion, 3000);
     },
@@ -242,8 +226,8 @@ export default {
         this.resetState();
       } else {
         this.quizCompleted = true;
-        this.feedbackMessage = 'Quiz concluído! Parabéns! 🎉';
-        this.feedbackClass = 'text-blue-500';
+        this.feedbackMessage = 'Quiz concluído!';
+        this.feedbackClass = 'text-blue-600';
       }
     },
 
