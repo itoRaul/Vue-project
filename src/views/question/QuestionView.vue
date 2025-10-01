@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-black-50 min-h-screen flex items-center justify-center p-4">
 
     <div v-if="form && !quizCompleted" class="questions bg-white w-full max-w-2xl p-8 rounded-lg shadow-lg border border-gray-200 transition-all duration-300">
 

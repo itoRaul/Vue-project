@@ -4,6 +4,7 @@ import QuestionView from '../views//question/QuestionView.vue'
 import ConfigView from '../views//question/ConfigView.vue'
 import RegisterView from '../views//question/RegisterView.vue'
 
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [

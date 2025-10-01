@@ -1,82 +1,115 @@
 <template>
-    <div>
-        <h1>Configurar alternativas</h1>
-    </div>
+    <div class="container mx-auto p-4">
 
-    <div>
-        <button>NOVO</button>
-    </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Nome da Cor</th>
-                    <th>Cor Hexadecimal</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>
-                        <button>Editar</button>
-                        <button>Deletar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Nenhuma configuração encontrada.</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="absolute top-4 right-4">
+            <Button>
+                <router-link :to="{ name: 'registerquestions' }">Registrar Perguntas</router-link>
+            </Button>
+        </div>
 
-        <a>Adicionar questão</a>
-        <div>
-            <h4>Editar Configuração | Criar Nova Configuração</h4>
+        <div class="text-center mb-4 text-2xl font-bold">
+            <h1>CONFIGURAR ALTERNATIVAS</h1>
+        </div>
 
+        <div class="mb-4 text-left">
+            <Button @click="toggleForm" label="Adicionar Configuração" />
+        </div>
+
+        <DataTable :value="data">
+            <Column field="id" header="ID" />
+            <Column field="name" header="Nome" />
+            <Column field="color_name" header="Nome da Cor" />
+            <Column field="color_hexadecimal" header="Cor Hexadecimal" />
+            <Column field="status" header="Status" />
+            <Column header="Ações" style="width: 8rem">
+                <template #body="slotProps">
+                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" />
+                    <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" />
+                </template>
+            </Column>
+        </DataTable>
+
+        <Dialog v-model:visible="showForm" modal header="Adicionar Configuração" :style="{ width: '25rem' }">
             <form>
-                <div>
-                    <label for="name">Nome</label>
-                    <input type="text" id="name">
-                    <span style="color: red;"></span> 
+                <div class="mb-6 mt-5">
+                    <FloatLabel>
+                        <InputText id="name" v-model="form.name" />
+                        <label for="name">Nome</label>
+                    </FloatLabel>
                 </div>
 
-                <div>
-                    <label for="color_name">Nome da Cor</label>
-                    <input type="text" id="color_name">
+                <div class="mb-6">
+                    <FloatLabel>
+                        <InputText id="color_name" v-model="form.color_name" />
+                        <label for="color_name">Nome da Cor</label>
+                    </FloatLabel>
+                </div>
+
+                <div class="mb-6">
+                    <FloatLabel>
+                        <InputText id="color_hexadecimal" v-model="form.color_hexadecimal" />
+                        <label for="color_hexadecimal">Cor em Hexadecimal</label>
+                    </FloatLabel>
                     <span style="color: red;"></span>
                 </div>
 
-                <div>
-                    <label for="color_hexadecimal">Cor em Hexadecimal</label>
-                    <input type="text" id="color_hexadecimal">
+                <div class="mb-6">
+                    <label for="status"></label>
+                    <Select v-model="form.status" :options="statusOptions" optionLabel="name" placeholder="Selecione um Status" class="w-full md:w-56" />
                     <span style="color: red;"></span>
                 </div>
 
-                <div>
-                    <label for="status">Status</label>
-                    <select id="status">
-                        <option value="1">Ativo</option>
-                        <option value="0">Inativo</option>
-                    </select>
-                    <span style="color: red;"></span>
-                </div>
-
-                <div>
-                    <button type="button">Cancelar</button>
-                    <button type="submit">Salvar</button>
+                <div class="mt-10 flex justify-end gap-2">
+                    <Button label="Cancelar" @click="showForm = false" class="p-button-secondary" />
+                    <Button @click="addConfiguration" label="Salvar" />
                 </div>
             </form>
-        </div>
-    
+        </Dialog>
+    </div>    
+
 </template>
 
 <script>
+
+    export default {
+        name: "ConfigView",
+
+        data(){
+            return {
+                data: null,
+                showForm: false,
+                form: {
+                    name: '',
+                    color_name: '',
+                    color_hexadecimal: '',
+                    status: '1'
+                }, 
+                statusOptions: [
+                    { name: 'Ativo', value: '1' },
+                    { name: 'Inativo', value: '0' }
+                ]
+            }
+        },
+        
+        mounted(){
+            fetch('http://localhost:8992/api/quiz/configuracoes')
+                .then(response => response.json())
+                .then(data => {
+                    this.data = data.data;
+                });
+        },
+        
+        methods: {
+            toggleForm() {
+                this.showForm = !this.showForm;
+            },
+
+            addConfiguration(){
+                
+            }
+        }
+
+    };
 
 </script>
 
