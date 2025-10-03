@@ -12,7 +12,7 @@
         </div>
 
         <div class="mb-4 text-left">
-            <Button @click="toggleForm" label="Adicionar Configuração" />
+            <Button @click="newConfiguration" label="Adicionar Configuração" />
         </div>
 
         <DataTable :value="data">
@@ -23,13 +23,13 @@
             <Column field="status" header="Status" />
             <Column header="Ações" style="width: 8rem">
                 <template #body="slotProps">
-                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" />
-                    <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" />
+                    <Button icon="pi pi-pencil" @click="editConfiguration(slotProps.data)" class="p-button-rounded p-button-success mr-2" />
+                    <Button icon="pi pi-trash" @click="deleteConfiguration(slotProps.data.id)" class="p-button-rounded p-button-danger" />
                 </template>
             </Column>
         </DataTable>
 
-        <Dialog v-model:visible="showForm" modal header="Adicionar Configuração" :style="{ width: '25rem' }">
+        <Dialog v-model:visible="showForm" modal :header="isEditing ? 'Editar Configuração' : 'Adicionar Configuração'" :style="{ width: '25rem' }">
             <form>
                 <div class="mb-6 mt-5">
                     <FloatLabel>
@@ -45,9 +45,17 @@
                     </FloatLabel>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-6 mt-12">
                     <FloatLabel>
-                        <InputText id="color_hexadecimal" v-model="form.color_hexadecimal" />
+                        <div class="flex items-center gap-2">
+                            <ColorPicker v-model="form.color_hexadecimal" class="w-8 h-8" />
+                            <InputText
+                                id="color_hexadecimal"
+                                v-model="form.color_hexadecimal"
+                                placeholder="selecione uma cor"
+                                class="w-32" disabled
+                            />
+                        </div>
                         <label for="color_hexadecimal">Cor em Hexadecimal</label>
                     </FloatLabel>
                     <span style="color: red;"></span>
@@ -55,13 +63,13 @@
 
                 <div class="mb-6">
                     <label for="status"></label>
-                    <Select v-model="form.status" :options="statusOptions" optionLabel="name" placeholder="Selecione um Status" class="w-full md:w-56" />
+                    <Select v-model="form.status" :options="statusOptions" optionLabel="name" optionValue="value" placeholder="Selecione um Status" class="w-full md:w-56" />
                     <span style="color: red;"></span>
                 </div>
 
                 <div class="mt-10 flex justify-end gap-2">
                     <Button label="Cancelar" @click="showForm = false" class="p-button-secondary" />
-                    <Button @click="addConfiguration" label="Salvar" />
+                    <Button @click="addConfiguration" :label="isEditing ? 'Atualizar' : 'Salvar'" />
                 </div>
             </form>
         </Dialog>
@@ -78,7 +86,9 @@
             return {
                 data: null,
                 showForm: false,
+                isEditing: false,
                 form: {
+                    id: null,
                     name: '',
                     color_name: '',
                     color_hexadecimal: '',
@@ -92,22 +102,107 @@
         },
         
         mounted(){
-            fetch('http://localhost:8992/api/quiz/configuracoes')
+            this.fetchForm();
+        },
+        
+        methods: {
+
+            fetchForm(){
+                fetch('http://localhost:8992/api/quiz/configuracoes')
                 .then(response => response.json())
                 .then(data => {
                     this.data = data.data;
                 });
-        },
-        
-        methods: {
-            toggleForm() {
-                this.showForm = !this.showForm;
+            },
+
+            newConfiguration() {
+                this.isEditing = false;
+                this.resetForm(); 
+                this.showForm = true;
+            },
+            
+            editConfiguration(configData) {
+                this.isEditing = true;
+                this.form = { ...configData }; 
+                this.showForm = true;
+                this.form.status = '1'
             },
 
             addConfiguration(){
                 
+                if (!this.form.name || !this.form.color_name || !this.form.color_hexadecimal) {
+                    alert('Por favor, preencha todos os campos obrigatórios.');
+                    return;
+                }
+
+                const configData = {
+                    name: this.form.name,
+                    color_name: this.form.color_name,
+                    color_hexadecimal: this.form.color_hexadecimal,
+                    status: this.form.status
+                };
+
+                if (this.isEditing && this.form.id) {
+                    configData.id = this.form.id;
+                }
+
+                const url = this.isEditing 
+                    ? `http://localhost:8992/api/quiz/configuracoes/${this.form.id}`
+                    : 'http://localhost:8992/api/quiz/configuracoes';
+                
+                const method = this.isEditing ? 'PUT' : 'POST';
+
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(configData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    this.fetchForm();
+                    this.resetForm();
+                    this.showForm = false;
+                })
+                .catch(error => {
+                    console.error('Erro ao processar configuração:', error);
+                });
+            },
+
+            resetForm() {
+                this.form = {
+                    id: null,
+                    name: '',
+                    color_name: '',
+                    color_hexadecimal: '',
+                    status: '1'
+                };
+            },
+
+            deleteConfiguration(id) {
+                fetch(`http://localhost:8992/api/quiz/configuracoes/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    this.fetchForm();
+                })
+                .catch(error => {
+                    console.error('Erro ao deletar configuração:', error);
+                });
             }
-        }
+        },
 
     };
 
