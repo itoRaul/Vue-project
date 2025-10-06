@@ -79,6 +79,12 @@
 
 <script>
 
+import axios from 'axios';
+
+    const api = axios.create({
+        baseURL: 'http://localhost:8992/api/quiz'
+    });
+
     export default {
         name: "ConfigView",
 
@@ -107,12 +113,14 @@
         
         methods: {
 
-            fetchForm(){
-                fetch('http://localhost:8992/api/quiz/configuracoes')
-                .then(response => response.json())
-                .then(data => {
-                    this.data = data.data;
-                });
+            fetchForm() {
+                api.get('/configuracoes')
+                    .then(response => {
+                        this.data = response.data.data;
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar configurações:", error);
+                    });
             },
 
             newConfiguration() {
@@ -128,8 +136,7 @@
                 this.form.status = '1'
             },
 
-            addConfiguration(){
-                
+            addConfiguration() {
                 if (!this.form.name || !this.form.color_name || !this.form.color_hexadecimal) {
                     alert('Por favor, preencha todos os campos obrigatórios.');
                     return;
@@ -142,37 +149,19 @@
                     status: this.form.status
                 };
 
-                if (this.isEditing && this.form.id) {
-                    configData.id = this.form.id;
-                }
+                const request = this.isEditing 
+                    ? api.put(`/configuracoes/${this.form.id}`, configData) 
+                    : api.post('/configuracoes', configData);             
 
-                const url = this.isEditing 
-                    ? `http://localhost:8992/api/quiz/configuracoes/${this.form.id}`
-                    : 'http://localhost:8992/api/quiz/configuracoes';
-                
-                const method = this.isEditing ? 'PUT' : 'POST';
-
-                fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(configData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na requisição: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    this.fetchForm();
-                    this.resetForm();
-                    this.showForm = false;
-                })
-                .catch(error => {
-                    console.error('Erro ao processar configuração:', error);
-                });
+                request
+                    .then(response => {
+                        this.fetchForm();
+                        this.resetForm();
+                        this.showForm = false;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao processar configuração:', error.response?.data || error.message);
+                    });
             },
 
             resetForm() {
@@ -186,22 +175,14 @@
             },
 
             deleteConfiguration(id) {
-                fetch(`http://localhost:8992/api/quiz/configuracoes/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na requisição: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    this.fetchForm();
-                })
-                .catch(error => {
-                    console.error('Erro ao deletar configuração:', error);
-                });
-            }
+                api.delete(`/configuracoes/${id}`)
+                    .then(response => {
+                        this.fetchForm();
+                    })
+                    .catch(error => {
+                        console.error('Erro ao deletar configuração:', error.response?.data || error.message);
+                    });
+            },
         },
 
     };

@@ -79,10 +79,15 @@
 
 <script>
 // import type { option } from '@primeuix/themes/aura/autocomplete';
+import axios from 'axios';
+
+    const api = axios.create({
+        baseURL: 'http://localhost:8992/api/quiz'
+    });
 
     export default {
         name: "RegisterView",
-        data(){
+        data() {
             return {
                 data: [],
                 showForm: false,
@@ -94,8 +99,7 @@
                     correctAnswer: null,
                     status: '1'
                 },
-                alternativesOptions: [
-                ],
+                alternativesOptions: [],
                 statusOptions: [
                     { name: 'Ativo', value: '1' },
                     { name: 'Inativo', value: '0' }
@@ -103,19 +107,20 @@
             }
         },
 
-        mounted(){
+        mounted() {
             this.fetchQuestions();
         },
 
         methods: {
-
-            fetchQuestions(){
-                fetch('http://localhost:8992/api/quiz/questoes')
-                .then(response => response.json())
-                .then(data => {
-                    this.data = data.data;
-                    this.alternativesOptions = data.alternatives_configuration;
-                });
+            fetchQuestions() {
+                api.get('/questoes')
+                    .then(response => {
+                        this.data = response.data.data;
+                        this.alternativesOptions = response.data.alternatives_configuration;
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar questões:", error);
+                    });
             },
 
             newQuestion() {
@@ -127,13 +132,14 @@
             editQuestion(questionData) {
                 this.isEditing = true;
                 this.form = JSON.parse(JSON.stringify(questionData));
-                this.form.correctAnswer = this.alternativesOptions.find(alt => alt.name === questionData.correctAnswer);
+                this.form.correctAnswer = this.alternativesOptions.find(
+                    alt => alt.name === questionData.correctAnswer
+                );
                 this.showForm = true;
                 this.form.status = '1'
             },
 
             addQuestion() {
-
                 if (!this.form.question || this.form.options.some(opt => !opt.text) || !this.form.correctAnswer) {
                     alert('Por favor, preencha todos os campos obrigatórios.');
                     return;
@@ -144,43 +150,25 @@
                     return acc;
                 }, {});
 
-                const configData = {
+                const questionPayload = {
                     name: this.form.question,
                     alternatives: alternativesObject,
                     correctAlternativeIndex: this.form.correctAnswer.name,
                     status: 1,
                 };
 
-                const url = this.isEditing 
-                    ? `http://localhost:8992/api/quiz/questoes/${this.form.id}`
-                    : 'http://localhost:8992/api/quiz/questoes';
-                
-                const method = this.isEditing ? 'PUT' : 'POST';
+                const request = this.isEditing 
+                    ? api.put(`/questoes/${this.form.id}`, questionPayload) 
+                    : api.post('/questoes', questionPayload);
 
-                console.log('Enviando JSON para a API (CORRIGIDO):', JSON.stringify(configData, null, 2));
-
-                fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(configData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        response.json().then(err => console.error("Erro detalhado da API:", err));
-                        throw new Error('Erro na requisição: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Sucesso:", data);
-                    this.fetchQuestions();
-                    this.showForm = false;
-                })
-                .catch(error => {
-                    console.error('Erro ao processar configuração:', error);
-                });
+                request
+                    .then(response => {
+                        this.fetchQuestions(); 
+                        this.showForm = false;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao processar questão:', error.response?.data || error.message);
+                    });
             },
 
             resetForm() {
@@ -198,23 +186,13 @@
             },
 
             deleteQuestion(id) {
-                fetch(`http://localhost:8992/api/quiz/questoes/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na requisição: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    this.fetchQuestions();
-                    alert('Questão deletada com sucesso!');
-                })
-                .catch(error => {
-                    console.error('Erro ao deletar questão:', error);
-                    alert('Erro ao deletar questão. Tente novamente.');
-                });
+                api.delete(`/questoes/${id}`)
+                    .then(response => {
+                        this.fetchQuestions();
+                    })
+                    .catch(error => {
+                        console.error('Erro ao deletar questão:', error.response?.data || error.message);
+                    });
             }
         }
     };
