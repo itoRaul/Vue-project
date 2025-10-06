@@ -7,6 +7,12 @@
             </Button>
         </div>
 
+        <div class="absolute top-17 right-4">
+            <Button>
+                <router-link :to="{ name: 'questions' }">QUIZ</router-link>
+            </Button>
+        </div>
+
         <div class="text-center mb-4 text-2xl font-bold">
             <h1>CONFIGURAR ALTERNATIVAS</h1>
         </div>
